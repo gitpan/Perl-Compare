@@ -1,0 +1,12 @@
+Changes
+lib/Perl/Compare.pm
+lib/Perl/Compare/Standard.pm
+LICENSE
+Makefile.PL
+MANIFEST			This list of files
+README
+t.data/simple.left
+t.data/simple.right
+t/01_compile.t
+t/02_samples.t
+META.yml                                Module meta-data (added by MakeMaker)

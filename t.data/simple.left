@@ -1,0 +1,8 @@
+package Foo::Bar;
+
+require 5.008;
+use warnings;
+
+my $foo = 'bar';
+
+1;

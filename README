@@ -1,0 +1,90 @@
+NAME
+    Perl::Compare - Compare two perl documents for equivalence
+
+SYNOPSIS
+      use Perl::Compare;
+  
+      # Compare my file to yours, to see if they are functionally equivalent
+      Perl::Compare->compare( 'my/file.pl', 'your/file.pl' );
+
+DESCRIPTION
+    Perl::Compare module takes perl documents, as a file name, raw source or
+    an existing PPI::Document object, and compares the two to see if they
+    are functionally identical.
+
+    The two documents (however they are provided) are loaded into fully
+    lexed PPI::Document structures. These are then destructively modified to
+    factor out anything that may have different content but be functionally
+    equivalent.
+
+    At the most basic level, the non-significant Elements are stripped out,
+    and some others converted into some lowest common form. Beyond that, a
+    number of additional transforms are done, using a pseudo-plugin system.
+
+    At the end of the normalization process, the two normalised documents
+    are compared with a normal deep structu comparison.
+
+METHODS
+  compare $left, $right, option => value, ...
+    The "compare" method is the primary method for doing a comparison
+    between two Perl documents. It's provided with two arguments, and an
+    optional set of options.
+
+    Each comparitor can be either a PPI::Document object, a
+    "Perl::Compare::_NormalizedDocument" object, a file name, or a reference
+    to a scalar containing raw perl source code. Each comparitor will be
+    loaded, parsed and normalized as needed to get two
+    Perl::Compare::_NormalizedDocument objects, which are then compared
+    using Data::Compare.
+
+    The list of options will be documented once this module is actually
+    useful.
+
+    Returns true is the two perl items are equivalent, false if not, or
+    "undef" on error.
+
+  normalize $PPI::Document, option => value, ...
+    The "normalize" method does the actual normalization of a single
+    PPI::Document object. The method takes as argument a single
+    PPI::Document object, and a set of options compatible with the "compare"
+    method above, and returns a Perl::Compare::_NormalizeDocument object,
+    which is the munged and destroyed result of the normalization process.
+
+    Although primarily used internally, its main public use it to
+    pre-normalize a Document object, when it will be compared a large number
+    of times.
+
+Perl::Compare::_NormalizedDocument
+    Perl::Compare::_NormalizedDocument is the internal class used to flag a
+    PPI::Document object as being fully normalized.
+
+    It has no special properties, or methods (But its completely destroyed
+    in the normalization process of course, so don't try to do anything with
+    it).
+
+TO DO
+    Create a proper extention mechanism, document it, maybe autodetect
+    plugins, and possibly break it up into multiple phases, so that the
+    simple transforms can be isolated from the more complex ones.
+
+SUPPORT
+    Bugs should be reported via the CPAN bug tracker at
+
+    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl%3A%3ACompare>
+
+    For other issues, contact the author.
+
+AUTHOR
+    Adam Kennedy (Maintainer), <http://ali.as/>, cpan@ali.as
+
+COPYRIGHT
+    Thank you to Phase N (<http://phase-n.com/>) for permitting the Open
+    Sourcing and release of this distribution.
+
+    Copyright (c) 2004 Adam Kennedy. All rights reserved. This program is
+    free software; you can redistribute it and/or modify it under the same
+    terms as Perl itself.
+
+    The full text of the license can be found in the LICENSE file included
+    with this module.
+
