@@ -1,89 +1,117 @@
 NAME
-    Perl::Compare - Compare two perl documents for equivalence
+    Perl::Compare - Normalized Comparison for Perl Source Trees
 
-SYNOPSIS
-      use Perl::Compare;
-  
-      # Compare my file to yours, to see if they are functionally equivalent
-      Perl::Compare->compare( 'my/file.pl', 'your/file.pl' );
+  STATUS
+    In the original 0.01 implementation of this module, cobbled together as
+    a proof-of-concept during a 9 hour caffiene-fuelled exploratory hacking
+    session, the "Document Normalization" process was included/embedded
+    inside of Perl::Compare.
+
+    In the 6 months between then and the first beta of PPI, it was realised
+    that normalization was both a more independant and important process
+    than only as part of a Document comparison system.
+
+    As such, normalization has been moved into the PPI core as PPI::Normal,
+    and a basic form of comparison can be done with the following.
+
+      sub compare ($$) {
+            $_[0]->normalized == $_[1]->normalized
+      }
+
+    This can be done without needing either Perl::Compare OR Perl::Signature
+    (a dependency of this module).
+
+    This module is now primarily intended for use in testing entire
+    directory trees of modules. Using this module for comparison of single
+    files is discouraged, as it will unduly increase the number of module
+    dependencies in your code/module.
 
 DESCRIPTION
-    Perl::Compare module takes perl documents, as a file name, raw source or
-    an existing PPI::Document object, and compares the two to see if they
-    are functionally identical.
+    Perl::Compare is designed to allow you to create customised comparisons
+    between different directory trees of Perl source code which are based on
+    normalized documents, and thus ignore "unimportant" changes to files.
 
-    The two documents (however they are provided) are loaded into fully
-    lexed PPI::Document structures. These are then destructively modified to
-    factor out anything that may have different content but be functionally
-    equivalent.
-
-    At the most basic level, the non-significant Elements are stripped out,
-    and some others converted into some lowest common form. Beyond that, a
-    number of additional transforms are done, using a pseudo-plugin system.
-
-    At the end of the normalization process, the two normalised documents
-    are compared with a normal deep structu comparison.
+  Comparison Targets
+    A comparison target is either a directory containing Perl code, a
+    Perl::Signature::Set object, or a file that contains a frozen
+    Perl::Signature::Set (not yet supported, dies with 'CODE INCOMPLETE').
 
 METHODS
-  compare $left, $right, option => value, ...
-    The "compare" method is the primary method for doing a comparison
-    between two Perl documents. It's provided with two arguments, and an
-    optional set of options.
+  new from => $target [, filter => $Rule ]
+    The "new" constructor creates a new comparison object. It takes a number
+    of different arguments to control it.
 
-    Each comparitor can be either a PPI::Document object, a
-    "Perl::Compare::_NormalizedDocument" object, a file name, or a reference
-    to a scalar containing raw perl source code. Each comparitor will be
-    loaded, parsed and normalized as needed to get two
-    Perl::Compare::_NormalizedDocument objects, which are then compared
-    using Data::Compare.
+    from
+        The mandatory "from" argument should be the target for the main
+        source tree. The comparison report works on a from->to basis, so an
+        entry will be 'added' if it is not present in the "from" target but
+        is present in the comparison target.
 
-    The list of options will be documented once this module is actually
-    useful.
+    layer
+        The optional "layer" argument specifies the document normalisation
+        layer to be used in the comparison. (1 by default)
 
-    Returns true is the two perl items are equivalent, false if not, or
-    "undef" on error.
+        If you use a stored Perl::Signature::Set file in the comparison, it
+        must match the layer used when creating the Perl::Compare object.
 
-  normalize $PPI::Document, option => value, ...
-    The "normalize" method does the actual normalization of a single
-    PPI::Document object. The method takes as argument a single
-    PPI::Document object, and a set of options compatible with the "compare"
-    method above, and returns a Perl::Compare::_NormalizeDocument object,
-    which is the munged and destroyed result of the normalization process.
+    filter
+        The optional "filter" argument allows you to pass a File::Find::Rule
+        object that will limit the comparison to a particular set of files.
 
-    Although primarily used internally, its main public use it to
-    pre-normalize a Document object, when it will be compared a large number
-    of times.
+        By default, the comparison object will check .pm, .pl and .t files
+        only.
 
-Perl::Compare::_NormalizedDocument
-    Perl::Compare::_NormalizedDocument is the internal class used to flag a
-    PPI::Document object as being fully normalized.
+    Returns a Perl::Compare object, or "undef" on error or invalid
+    arguments.
 
-    It has no special properties, or methods (But its completely destroyed
-    in the normalization process of course, so don't try to do anything with
-    it).
+  layer
+    The "layer" accessor returns the normalization layer to be used for the
+    comparison.
 
-TO DO
-    Create a proper extention mechanism, document it, maybe autodetect
-    plugins, and possibly break it up into multiple phases, so that the
-    simple transforms can be isolated from the more complex ones.
+  filter
+    The "filter" accessor returns the File::Find::Rule filter to be used for
+    finding the files for the comparison.
+
+  compare $target
+    The "compare" method takes as argument a single comparison target and
+    runs a standard comparison of the different from the contructor "from"
+    argument to the target argument.
+
+    The result is a reference to a HASH where the names of the files are the
+    key, and the value is one of either 'added', 'removed', or 'changed'.
+
+    Returns a reference to a HASH if there is a different between the two
+    targets, false if there is no difference, or "undef" on error.
+
+  compare_report $target
+    The "compare_report" takes the same argument and performs the same task
+    as the "compare" method, but instead of a structured hash, it formats
+    the results into a conveniently-printable summary in the following
+    format.
+
+      + file/added/in_target.t
+      ! file/functionally/different.pm
+      - removed/in/target.pl
+
+    Returns the report as a single string, or "undef" on error
 
 SUPPORT
-    Bugs should be reported via the CPAN bug tracker at
+    Bugs should always be submitted via the CPAN bug tracker, located at
 
-    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl%3A%3ACompare>
+    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Compare>
 
-    For other issues, contact the author.
+    For general comments, contact the author.
 
 AUTHOR
     Adam Kennedy (Maintainer), <http://ali.as/>, cpan@ali.as
 
-COPYRIGHT
-    Thank you to Phase N (<http://phase-n.com/>) for permitting the Open
-    Sourcing and release of this distribution.
+SEE ALSO
+    PPI, PPI::Normal, Perl::Signature
 
-    Copyright (c) 2004 Adam Kennedy. All rights reserved. This program is
-    free software; you can redistribute it and/or modify it under the same
-    terms as Perl itself.
+COPYRIGHT
+    Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved. This
+    program is free software; you can redistribute it and/or modify it under
+    the same terms as Perl itself.
 
     The full text of the license can be found in the LICENSE file included
     with this module.

@@ -1,4 +1,8 @@
-Revision history for Perl extension PPI::Analysis::Compare
+Revision history for Perl extension Perl::Compare
+
+0.10 Wed Feb  9 2005
+	- Completely rewritten. New purpose. New API.
+	- All pre-0.10 code should port to PPI::Normal and Perl::Signature
 
 0.07 Fri Sep 24 2004
 	- Back in good enough condition to upload
