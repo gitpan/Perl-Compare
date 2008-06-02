@@ -1,22 +1,15 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Empiric testing for the Perl::Compare module
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 7;
+use File::Spec::Functions ':ALL';
 use Perl::Compare    ();
 use File::Find::Rule ();
 use constant FFR => 'File::Find::Rule';
@@ -30,14 +23,14 @@ use constant FFR => 'File::Find::Rule';
 
 # Build the file filter
 my $Rule = FFR->or(
-	FFR->directory->name('CVS')->prune->discard,
+	FFR->name('.svn')->directory->prune->discard,
 	FFR->new,
 	);
 $Rule->name('*.pm');
 isa_ok( $Rule, 'File::Find::Rule' );
 
-my $from = catfile( 't.data', '03_empiric', 'from' );
-my $to   = catfile( 't.data', '03_empiric', 'to'   );
+my $from = catfile( 't', 'data', '03_empiric', 'from' );
+my $to   = catfile( 't', 'data', '03_empiric', 'to'   );
 ok( -d $from, 'from directory exists' );
 ok( -d $to,   'to directory exists'   );
 
@@ -72,5 +65,3 @@ is( $report, <<END_REPORT, '->compare_report returns as expected' );
 ! changed.pm
 - removed.pm
 END_REPORT
-
-1;

@@ -49,8 +49,8 @@ L<Perl::Signature::Set> object, or a file that contains a frozen
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
 use File::chdir; # Imports $CWD
+use Params::Util         '_INSTANCE';
 use List::MoreUtils      ();
 use Perl::Signature      ();
 use Perl::Signature::Set ();
@@ -58,7 +58,7 @@ use File::Find::Rule     ();
 
 use vars qw{$VERSION %SYMBOLS};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 
 	# Change report symbols
 	%SYMBOLS = (
@@ -120,7 +120,7 @@ sub new {
 	my $layer  = exists $args{layer}
 		? (defined $args{layer} and $args{layer} eq '1') ? shift : return undef
 		: 1;
-	my $filter = isa(ref $args{filter}, 'File::Find::Rule') ? $args{filter}
+	my $filter = _INSTANCE($args{filter}, 'File::Find::Rule') ? $args{filter}
 		: File::Find::Rule->name( qr/\.(?:pm|pl|t)$/ );
 	$filter->relative->file;
 	
@@ -246,7 +246,7 @@ sub compare_report {
 sub target {
 	my $self = shift;
 	my $it   = defined $_[0] ? shift : return undef;
-	if ( isa(ref $it, 'Perl::Signature::Set') ) {
+	if ( _INSTANCE($it, 'Perl::Signature::Set') ) {
 		$it->layer == $self->layer or return undef;
 		return $it;
 	} elsif ( -d $it ) {
@@ -279,7 +279,7 @@ For general comments, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -287,7 +287,8 @@ L<PPI>, L<PPI::Normal>, L<Perl::Signature>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2005 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
